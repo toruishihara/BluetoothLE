@@ -19,11 +19,14 @@
 @property (strong, nonatomic) NSMutableData             *mdtSendValue;
 @property (strong, nonatomic) NSString                  *strGotValue;
 @property (nonatomic) BOOL                              isSubscribed;
+@property (strong, nonatomic) NSUUID *uuid;
+
 @end
 @implementation PeripheralController
 - (void) initPeripheralController
 {
     // PeripheralManagerの初期化. Delegateにselfを設定し、起動時にBluetoothがOffならアラートを表示する.
+    NSLog(@"init");
     _cpmPeripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:@{CBPeripheralManagerOptionShowPowerAlertKey:@YES}];
     
     _isSubscribed = NO;
@@ -39,9 +42,12 @@
     // Centralの書き込みリクエストで受け取った値を返す.
     return _strGotValue;
 }
+
+
 // Bluetoothの状態が変わったら実行される.
 - (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
 {
+    NSLog(@"updateState state=%d", (int)peripheral.state);
     // BluetoothがOffならリターン.
     if (peripheral.state != CBPeripheralManagerStatePoweredOn) {
         return;
@@ -53,9 +59,11 @@
                                                                  value:nil
                                                            permissions:(CBAttributePermissionsReadable|CBAttributePermissionsWriteable)];
     
+
     // Serviceの初期化. ここで設定したIDをもとにCentralがServiceを検索する.
     CBMutableService *cmsService = [[CBMutableService alloc] initWithType:[CBUUID UUIDWithString:SERVICE_UUID]
                                                                   primary:YES];
+
     
     // ServiceのCharacteristicを設定する.
     cmsService.characteristics = @[_cmcCharacteristic];
@@ -63,12 +71,20 @@
     // PeripheralManagerにServiceを追加する.
     [_cpmPeripheralManager addService:cmsService];
     
-    // Advertisingの開始.Centralから探索可能にする.
-    NSUUID *uuid = [[NSUUID alloc]initWithUUIDString:SERVICE_UUID];
-    //[_cpmPeripheralManager startAdvertising:@{ CBAdvertisementDataServiceUUIDsKey : @CBUUID UUIDWithString:SERVICE_UUID }];
-    [_cpmPeripheralManager startAdvertising:@{ CBAdvertisementDataServiceUUIDsKey : uuid }];
-    
+    [self advertise];
 }
+
+-(void)advertise {
+    NSLog(@"startAdvertising");
+    // Advertisingの開始.Centralから探索可能にする.
+    if (_uuid == nil) {
+        _uuid = [[NSUUID alloc]initWithUUIDString:SERVICE_UUID];
+    }
+    NSDictionary *advertisementData = @{CBAdvertisementDataLocalNameKey: @"Test Device"};
+    [_cpmPeripheralManager startAdvertising:advertisementData];
+    //[_cpmPeripheralManager startAdvertising:@{ CBAdvertisementDataServiceUUIDsKey : _uuid }];
+}
+
 // Peripheralで設定した値を更新したら、Centralに通知がいくようにする(Centralからのリクエストで実行).
 - (void)peripheralManager:(CBPeripheralManager *)peripheral central:(CBCentral *)central didSubscribeToCharacteristic:(CBCharacteristic *)characteristic
 {
@@ -100,4 +116,23 @@
         }
     }
 }
+
+- (void)peripheralManager:(CBPeripheralManager *)peripheral
+            didAddService:(CBService *)service
+                    error:(NSError *)error
+{
+    NSLog(@"didAddService service=%@", service);
+    if (error) {
+        NSLog(@"error:%@", error);
+    }
+}
+
+- (void)peripheralManagerDidStartAdvertising:(CBPeripheralManager *)peripheral error:(NSError *)error
+{
+    NSLog(@"didStartAd");
+    if (error) {
+        NSLog(@"error:%@", error);
+    }
+}
+
 @end

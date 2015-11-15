@@ -13,6 +13,7 @@
 - (void) close;
 - (NSString *) getCentralValue;
 - (BOOL) updatePeripheralValue:(int) intSendData;
+- (void) advertise;
 @end
 
 #endif /* PeripheralController_h */

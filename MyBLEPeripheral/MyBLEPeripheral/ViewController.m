@@ -17,13 +17,16 @@
 @implementation ViewController
 
 - (IBAction)OnClick:(id)sender {
-    [_peripheralController initPeripheralController];
+    NSLog(@"OnClick");
+    [_peripheralController advertise];
+    [_peripheralController updatePeripheralValue:99];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     _peripheralController = [PeripheralController alloc];
+    [_peripheralController initPeripheralController];
 }
 
 - (void)didReceiveMemoryWarning {
