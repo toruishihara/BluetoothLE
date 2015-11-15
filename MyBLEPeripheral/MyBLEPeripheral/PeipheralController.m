@@ -139,4 +139,17 @@
     }
 }
 
+- (void)peripheralManager:(CBPeripheralManager *)peripheral
+    didReceiveReadRequest:(CBATTRequest *)request
+{
+    if ([request.characteristic.UUID isEqual:_cmcCharacteristic.UUID]) {
+        
+        // CBMutableCharacteristicのvalueをCBATTRequestのvalueにセット
+        request.value = _cmcCharacteristic.value;
+        
+        // リクエストに応答
+        [_cpmPeripheralManager respondToRequest:request
+                                      withResult:CBATTErrorSuccess];
+    }
+}
 @end
