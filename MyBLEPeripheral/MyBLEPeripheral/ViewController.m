@@ -16,10 +16,12 @@
 
 @implementation ViewController
 
+int _cnt = 11;
 - (IBAction)OnClick:(id)sender {
     NSLog(@"OnClick");
     [_peripheralController advertise];
-    [_peripheralController updatePeripheralValue:99];
+    _cnt++;
+    [_peripheralController updatePeripheralValue:_cnt];
 }
 
 - (void)viewDidLoad {

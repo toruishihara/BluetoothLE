@@ -71,6 +71,9 @@
     // PeripheralManagerにServiceを追加する.
     [_cpmPeripheralManager addService:cmsService];
     
+    _mdtSendValue = (NSMutableData *)[[NSString stringWithFormat:@"%d", 88] dataUsingEncoding:NSUTF8StringEncoding];
+    [_cpmPeripheralManager updateValue:_mdtSendValue forCharacteristic:_cmcCharacteristic onSubscribedCentrals:nil];
+    
     [self advertise];
 }
 
@@ -88,6 +91,7 @@
 // Peripheralで設定した値を更新したら、Centralに通知がいくようにする(Centralからのリクエストで実行).
 - (void)peripheralManager:(CBPeripheralManager *)peripheral central:(CBCentral *)central didSubscribeToCharacteristic:(CBCharacteristic *)characteristic
 {
+    NSLog(@"didSubscribeToCharacteristic");
     _isSubscribed = YES;
 }
 - (BOOL) updatePeripheralValue:(int) intSendData
